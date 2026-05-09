@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "username": "Semsic",
+            "password_hash": "$2a$12$oBaV1zmYc2EeLClgScVo4uex.3pbteQl2ZUv3kFTLFdxIVs\/XwZMO",
+            "hwid": "455e2ce1571e8bf3a563f35e9aa42e7300d291ca7df60e0e9e447156b166b48a278",
+            "mc_name": "Semsic"
+        },
+        {
+            "username": "Neoom",
+            "password_hash": "$2a$12$Wx3Utc4H8Dz4VrsQSYeG5uKgaKkvxihzq7JSApPCtJl10Mfb9sELu",
+            "hwid": "",
+            "mc_name": "Neoom"
+        },
+        {
+            "username": "marcos22",
+            "password_hash": "$2a$12$4UWc.L0rTn.sEYAPs23CT.\/TjQGvqjdoSFGFtd5aOXsVAbM66byNG",
+            "hwid": "",
+            "mc_name": "marcos22"
+        },
+        {
+            "username": "lucasgueds1020",
+            "password_hash": "$2a$12$t9WDSgvsiM.333Te2MoGI.SalMRjY6ryVYqmqTdnxSRJXxGVRUDbm",
+            "hwid": "",
+            "mc_name": "lucasgueds1020"
+        }
+    ]
+}
