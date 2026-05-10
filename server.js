@@ -142,6 +142,16 @@ app.post('/resethwid', (req, res) => {
   res.json({ success: true, message: 'HWID cleared. Next login will rebind.' });
 });
 
+// ---------- CHAT RESET -----------
+app.post('/ec-chat-reset', (req, res) => {
+  const { token } = req.body;
+  if (token !== 'SEU_TOKEN_SECRETO') {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+  chatMessages.length = 0; // limpa o array
+  res.json({ success: true, message: 'Chat messages cleared.' });
+});
+
 // ===================== INICIAR SERVIDOR =====================
 app.listen(PORT, () => {
   console.log(`Eclipse API rodando na porta ${PORT}`);
