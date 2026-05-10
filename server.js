@@ -145,7 +145,7 @@ app.post('/resethwid', (req, res) => {
 // ---------- CHAT RESET -----------
 app.post('/ec-chat-reset', (req, res) => {
   const { token } = req.body;
-  if (token !== 'SEU_TOKEN_SECRETO') {
+  if (token !== 'EclipseOwner123') {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
   chatMessages.length = 0; // limpa o array
