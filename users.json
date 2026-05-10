@@ -2,7 +2,7 @@
     "users": [
         {
             "username": "Semsic",
-            "password_hash": "$2a$12$oBaV1zmYc2EeLClgScVo4uex.3pbteQl2ZUv3kFTLFdxIVs\/XwZMO",
+            "password_hash": "$2a$12$oBaV1zmYc2EeLClgScVo4uex.3pbteQl2ZUv3kFTLFdxIVs/XwZMO",
             "hwid": "",
             "mc_name": "Semsic"
         },
@@ -14,7 +14,7 @@
         },
         {
             "username": "marcos22",
-            "password_hash": "$2a$12$4UWc.L0rTn.sEYAPs23CT.\/TjQGvqjdoSFGFtd5aOXsVAbM66byNG",
+            "password_hash": "$2a$12$4UWc.L0rTn.sEYAPs23CT./TjQGvqjdoSFGFtd5aOXsVAbM66byNG",
             "hwid": "",
             "mc_name": "marcos22"
         },
@@ -23,7 +23,7 @@
             "password_hash": "$2a$12$t9WDSgvsiM.333Te2MoGI.SalMRjY6ryVYqmqTdnxSRJXxGVRUDbm",
             "hwid": "",
             "mc_name": "lucasgueds1020"
-        }
+        },
         {
             "username": "gaby",
             "password_hash": "$2a$12$/OqzaywFrQbN8Qk.J0Mxhe3AzcqqZrX2tmn9OrwLUGyXVymNBIG.S",
