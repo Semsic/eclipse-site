@@ -54,35 +54,14 @@ app.post('/update-mc-name', (req, res) => {
 });
 
 // ---------- EclipseIdentity (mapeamento mc_name -> eclipse_name) ----------
-    public static void updateMcName(String eclipseUser, String mcName) {
-        try {
-            URL url = new URL(UPDATE_MCNAME_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("User-Agent", "EclipseClient/1.0");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-
-            String postData = "username=" + URLEncoder.encode(eclipseUser, "UTF-8")
-                    + "&mc_name=" + URLEncoder.encode(mcName, "UTF-8");
-            byte[] postBytes = postData.getBytes(StandardCharsets.UTF_8);
-            conn.setRequestProperty("Content-Length", String.valueOf(postBytes.length));
-
-            OutputStream os = conn.getOutputStream();
-            os.write(postBytes);
-            os.flush();
-            os.close();
-
-            int code = conn.getResponseCode();
-            // Lê a resposta para depuração
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-            String response = br.readLine();
-            br.close();
-            System.out.println("[WebLogin.updateMcName] HTTP " + code + ": " + response);
-        } catch (Exception e) {
-            System.err.println("[WebLogin.updateMcName] Erro ao atualizar mc_name: " + e.getMessage());
-        }
-    }
+app.get('/eclipse-users', (req, res) => {
+  const data = loadUsers();
+  const mappings = data.users.map(u => ({
+    mc_name: u.mc_name || u.username,
+    eclipse_name: u.username
+  }));
+  res.json({ success: true, users: mappings });
+});
 
 // ---------- Chat Eclipse ----------
 app.post('/ec-chat', (req, res) => {
@@ -163,13 +142,13 @@ app.post('/resethwid', (req, res) => {
   res.json({ success: true, message: 'HWID cleared. Next login will rebind.' });
 });
 
-// ---------- CHAT RESET -----------
+// ---------- CHAT RESET ----------
 app.post('/ec-chat-reset', (req, res) => {
   const { token } = req.body;
   if (token !== 'EclipseOwner123') {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
-  chatMessages.length = 0; // limpa o array
+  chatMessages.length = 0;
   res.json({ success: true, message: 'Chat messages cleared.' });
 });
 
