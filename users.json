@@ -19,5 +19,16 @@
             "mc_name": "marcos22"
         },
         {
+            "username": "lucasgueds1020",
+            "password_hash": "$2a$12$t9WDSgvsiM.333Te2MoGI.SalMRjY6ryVYqmqTdnxSRJXxGVRUDbm",
+            "hwid": "",
+            "mc_name": "lucasgueds1020"
+        }
+        {
+            "username": "gaby",
+            "password_hash": "$2a$12$/OqzaywFrQbN8Qk.J0Mxhe3AzcqqZrX2tmn9OrwLUGyXVymNBIG.S",
+            "hwid": "",
+            "mc_name": "gaby"
+        }
     ]
 }
