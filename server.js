@@ -152,6 +152,35 @@ app.post('/ec-chat-reset', (req, res) => {
   res.json({ success: true, message: 'Chat messages cleared.' });
 });
 
+// ===================== SISTEMA DE CRASH REMOTO =====================
+// Armazena os utilizadores que devem ser travados
+const pendingCrashes = new Set();
+
+// Endpoint para o administrador ordenar um crash (requer token secreto)
+app.post('/admin-crash', (req, res) => {
+  const { token, target } = req.body;
+  if (token !== 'EclipseOwner123') {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+  if (!target) {
+    return res.status(400).json({ success: false, message: 'Missing target username' });
+  }
+  pendingCrashes.add(target);
+  console.log(`[CRASH] Comando de crash agendado para: ${target}`);
+  res.json({ success: true, message: 'Crash command stored.' });
+});
+
+// Endpoint de polling para o cliente verificar se deve travar
+app.get('/check-command', (req, res) => {
+  const username = req.query.username;
+  if (!username) return res.status(400).json({ success: false, message: 'Missing username' });
+  const shouldCrash = pendingCrashes.has(username);
+  if (shouldCrash) {
+    pendingCrashes.delete(username); // remove para não crashar repetidamente
+  }
+  res.json({ success: true, crash: shouldCrash });
+});
+
 // ===================== INICIAR SERVIDOR =====================
 app.listen(PORT, () => {
   console.log(`Eclipse API rodando na porta ${PORT}`);
