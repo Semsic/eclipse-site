@@ -34,6 +34,25 @@ app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Eclipse API is running' });
 });
 
+// ---------- Atualizar o mc_name do utilizador (chamado pelo cliente) ----------
+app.post('/update-mc-name', (req, res) => {
+  const { username, mc_name } = req.body;
+  if (!username || !mc_name) {
+    return res.status(400).json({ success: false, message: 'Missing data' });
+  }
+
+  const data = loadUsers();
+  const userIndex = data.users.findIndex(u => u.username === username);
+  if (userIndex === -1) {
+    return res.status(400).json({ success: false, message: 'User not found' });
+  }
+
+  data.users[userIndex].mc_name = mc_name;
+  saveUsers(data);
+  console.log(`[MC_NAME] ${username} → ${mc_name}`);
+  res.json({ success: true, message: 'MC name updated' });
+});
+
 // ---------- EclipseIdentity (mapeamento mc_name -> eclipse_name) ----------
 app.get('/eclipse-users', (req, res) => {
   const data = loadUsers();
@@ -45,7 +64,6 @@ app.get('/eclipse-users', (req, res) => {
 });
 
 // ---------- Chat Eclipse ----------
-// POST – envia mensagem para o chat Eclipse
 app.post('/ec-chat', (req, res) => {
   const { username, message } = req.body;
   if (!username || !message) {
@@ -56,7 +74,6 @@ app.post('/ec-chat', (req, res) => {
     message: message,
     timestamp: Date.now()
   });
-  // Mantém apenas as últimas MAX_CHAT_MESSAGES mensagens
   while (chatMessages.length > MAX_CHAT_MESSAGES) {
     chatMessages.shift();
   }
@@ -64,7 +81,6 @@ app.post('/ec-chat', (req, res) => {
   res.json({ success: true });
 });
 
-// GET – obtém as últimas N mensagens (padrão 20)
 app.get('/ec-chat', (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const recent = chatMessages.slice(-limit);
@@ -92,21 +108,17 @@ app.post('/api.php', (req, res) => {
 
   const user = data.users[userIndex];
 
-  // Verifica senha
   if (!bcrypt.compareSync(password, user.password_hash)) {
     return res.status(400).json({ success: false, message: 'Wrong password' });
   }
 
-  // ---- LÓGICA DO HWID (com trim e preenchimento automático) ----
   const cleanHwid = (hwid || '').trim();
 
   if (!user.hwid || user.hwid.trim() === '') {
-    // Primeiro login ou HWID limpo → guarda o HWID recebido
     data.users[userIndex].hwid = cleanHwid;
     saveUsers(data);
     console.log(`[OK] HWID vinculado para ${username}: ${cleanHwid}`);
   } else if (user.hwid.trim() !== cleanHwid) {
-    // HWID diferente → rejeita
     console.log(`[ERRO] HWID mismatch para ${username}. Recebido: ${cleanHwid}, Armazenado: ${user.hwid}`);
     return res.status(400).json({ success: false, message: 'HWID mismatch' });
   }
@@ -114,7 +126,7 @@ app.post('/api.php', (req, res) => {
   return res.json({ success: true, message: 'Login successful' });
 });
 
-// ---------- RESET DE HWID (usado pelo fallback do cliente) ----------
+// ---------- RESET DE HWID ----------
 app.post('/resethwid', (req, res) => {
   const { username, password } = req.body;
   const data = loadUsers();
