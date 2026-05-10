@@ -10,6 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const usersFile = path.join(__dirname, 'users.json');
 
+// ===================== UTILITÁRIOS =====================
 function loadUsers() {
   try {
     return JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
@@ -22,12 +23,18 @@ function saveUsers(data) {
   fs.writeFileSync(usersFile, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Rota de teste
+// Armazenamento volátil das mensagens do chat Eclipse
+const chatMessages = [];
+const MAX_CHAT_MESSAGES = 50;
+
+// ===================== ROTAS =====================
+
+// Teste
 app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Eclipse API is running' });
 });
 
-// Endpoint para o EclipseIdentity (lista de mapeamentos mc_name -> eclipse_name)
+// ---------- EclipseIdentity (mapeamento mc_name -> eclipse_name) ----------
 app.get('/eclipse-users', (req, res) => {
   const data = loadUsers();
   const mappings = data.users.map(u => ({
@@ -37,7 +44,34 @@ app.get('/eclipse-users', (req, res) => {
   res.json({ success: true, users: mappings });
 });
 
-// LOGIN
+// ---------- Chat Eclipse ----------
+// POST – envia mensagem para o chat Eclipse
+app.post('/ec-chat', (req, res) => {
+  const { username, message } = req.body;
+  if (!username || !message) {
+    return res.status(400).json({ success: false, message: 'Missing username or message' });
+  }
+  chatMessages.push({
+    username: username,
+    message: message,
+    timestamp: Date.now()
+  });
+  // Mantém apenas as últimas MAX_CHAT_MESSAGES mensagens
+  while (chatMessages.length > MAX_CHAT_MESSAGES) {
+    chatMessages.shift();
+  }
+  console.log(`[Chat] ${username}: ${message}`);
+  res.json({ success: true });
+});
+
+// GET – obtém as últimas N mensagens (padrão 20)
+app.get('/ec-chat', (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+  const recent = chatMessages.slice(-limit);
+  res.json({ success: true, messages: recent });
+});
+
+// ---------- LOGIN ----------
 app.post('/api.php', (req, res) => {
   const { action, username, password, hwid } = req.body;
 
@@ -67,7 +101,7 @@ app.post('/api.php', (req, res) => {
   const cleanHwid = (hwid || '').trim();
 
   if (!user.hwid || user.hwid.trim() === '') {
-    // PRIMEIRO LOGIN OU HWID LIMPO → guarda o HWID recebido
+    // Primeiro login ou HWID limpo → guarda o HWID recebido
     data.users[userIndex].hwid = cleanHwid;
     saveUsers(data);
     console.log(`[OK] HWID vinculado para ${username}: ${cleanHwid}`);
@@ -80,7 +114,7 @@ app.post('/api.php', (req, res) => {
   return res.json({ success: true, message: 'Login successful' });
 });
 
-// Rota auxiliar para RESETAR o HWID (requer senha correta)
+// ---------- RESET DE HWID (usado pelo fallback do cliente) ----------
 app.post('/resethwid', (req, res) => {
   const { username, password } = req.body;
   const data = loadUsers();
@@ -92,10 +126,11 @@ app.post('/resethwid', (req, res) => {
 
   data.users[userIndex].hwid = '';
   saveUsers(data);
+  console.log(`[RESET] HWID de ${username} foi limpo.`);
   res.json({ success: true, message: 'HWID cleared. Next login will rebind.' });
 });
 
-// Iniciar o servidor
+// ===================== INICIAR SERVIDOR =====================
 app.listen(PORT, () => {
   console.log(`Eclipse API rodando na porta ${PORT}`);
   if (!fs.existsSync(usersFile)) {
