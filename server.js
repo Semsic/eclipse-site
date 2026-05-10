@@ -27,6 +27,16 @@ app.get('/', (req, res) => {
   res.json({ status: 'OK', message: 'Eclipse API is running' });
 });
 
+// Endpoint para o EclipseIdentity (lista de mapeamentos mc_name -> eclipse_name)
+app.get('/eclipse-users', (req, res) => {
+  const data = loadUsers();
+  const mappings = data.users.map(u => ({
+    mc_name: u.mc_name || u.username,
+    eclipse_name: u.username
+  }));
+  res.json({ success: true, users: mappings });
+});
+
 // LOGIN
 app.post('/api.php', (req, res) => {
   const { action, username, password, hwid } = req.body;
@@ -85,6 +95,7 @@ app.post('/resethwid', (req, res) => {
   res.json({ success: true, message: 'HWID cleared. Next login will rebind.' });
 });
 
+// Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Eclipse API rodando na porta ${PORT}`);
   if (!fs.existsSync(usersFile)) {
