@@ -29,6 +29,12 @@
             "password_hash": "$2a$12$bTVUk26ZPheXRnvoREu38OYhPijKfIg7wJcPIHyubrX.yjGzsZnum",
             "hwid": "",
             "mc_name": "gaby"
+        },
+        {
+            "username": "mwvii",
+            "password_hash": "$2a$12$E9WELEgWrE1PNAQkRyhV7uk.9v/JBAXK.9CfjS3lLerN8O.dUg.Ua",
+            "hwid": "",
+            "mc_name": ""
         }
     ]
 }
