@@ -12,6 +12,9 @@ app.use(express.urlencoded({ extended: true }));
 // Caminho para o arquivo JSON que armazena os utilizadores
 const usersFile = path.join(__dirname, 'users.json');
 
+// Caminho para o arquivo de log de tentativas de login
+const loginLogFile = path.join(__dirname, 'login_log.json');
+
 // ===================== UTILITÁRIOS =====================
 
 /**
@@ -35,8 +38,29 @@ function saveUsers(data) {
   fs.writeFileSync(usersFile, JSON.stringify(data, null, 2), 'utf-8');
 }
 
+/**
+ * Carrega o array de logs de login. Se o arquivo não existir, retorna [].
+ * @returns {Array} Array de objetos de log.
+ */
+function loadLoginLog() {
+  try {
+    return JSON.parse(fs.readFileSync(loginLogFile, 'utf-8'));
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Adiciona uma entrada ao log de login e salva no disco.
+ * @param {Object} entry - { username, success, hwid, timestamp }
+ */
+function appendLoginLog(entry) {
+  const log = loadLoginLog();
+  log.push(entry);
+  fs.writeFileSync(loginLogFile, JSON.stringify(log, null, 2), 'utf-8');
+}
+
 // Armazenamento volátil (em memória) das mensagens do chat Eclipse
-// As mensagens NÃO persistem após reinicialização do servidor
 const chatMessages = [];           // Array que guarda as mensagens na ordem de chegada
 const MAX_CHAT_MESSAGES = 50;      // Limite máximo de mensagens armazenadas
 
@@ -125,7 +149,8 @@ app.get('/ec-chat', (req, res) => {
  * 3. Compara a password com o hash armazenado (bcrypt).
  * 4. Lida com HWID: se o utilizador não tiver HWID, vincula o HWID informado.
  *    Se já tiver HWID, verifica se é igual ao informado.
- * 5. Retorna sucesso ou erro.
+ * 5. Regista a tentativa no login_log.json.
+ * 6. Retorna sucesso ou erro.
  */
 app.post('/api.php', (req, res) => {
   const { action, username, password, hwid } = req.body;
@@ -135,13 +160,29 @@ app.post('/api.php', (req, res) => {
   }
 
   if (!username || !password) {
+    // Regista tentativa falhada por falta de dados
+    appendLoginLog({
+      username: username || '(vazio)',
+      success: false,
+      hwid: hwid || '',
+      timestamp: Date.now()
+    });
     return res.status(400).json({ success: false, message: 'Username or password empty' });
   }
 
   const data = loadUsers();
   const userIndex = data.users.findIndex(u => u.username === username);
 
+  // Regista a tentativa no log
+  const logEntry = {
+    username: username,
+    success: false,
+    hwid: hwid || '',
+    timestamp: Date.now()
+  };
+
   if (userIndex === -1) {
+    appendLoginLog(logEntry);
     return res.status(400).json({ success: false, message: 'User not found' });
   }
 
@@ -149,6 +190,7 @@ app.post('/api.php', (req, res) => {
 
   // Compara a senha fornecida com o hash armazenado
   if (!bcrypt.compareSync(password, user.password_hash)) {
+    appendLoginLog(logEntry);
     return res.status(400).json({ success: false, message: 'Wrong password' });
   }
 
@@ -159,13 +201,19 @@ app.post('/api.php', (req, res) => {
     data.users[userIndex].hwid = cleanHwid;
     saveUsers(data);
     console.log(`[OK] HWID vinculado para ${username}: ${cleanHwid}`);
+    logEntry.success = true;
+    appendLoginLog(logEntry);
+    return res.json({ success: true, message: 'Login successful' });
   } 
   // Se já existe HWID, verifica se coincide
   else if (user.hwid.trim() !== cleanHwid) {
-    console.log(`[ERRO] HWID mismatch para ${username}. Recebido: ${cleanHwid}, Armazenado: ${user.hwid}`);
+    logEntry.message = 'HWID mismatch';
+    appendLoginLog(logEntry);
     return res.status(400).json({ success: false, message: 'HWID mismatch' });
   }
 
+  logEntry.success = true;
+  appendLoginLog(logEntry);
   return res.json({ success: true, message: 'Login successful' });
 });
 
@@ -209,5 +257,9 @@ app.listen(PORT, () => {
   // Se o arquivo users.json não existir, cria um com estrutura inicial vazia
   if (!fs.existsSync(usersFile)) {
     saveUsers({ users: [] });
+  }
+  // Se o arquivo login_log.json não existir, cria um vazio
+  if (!fs.existsSync(loginLogFile)) {
+    fs.writeFileSync(loginLogFile, '[]', 'utf-8');
   }
 });
