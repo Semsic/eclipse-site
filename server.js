@@ -238,6 +238,18 @@ app.post('/resethwid', (req, res) => {
 });
 
 /**
+ * Rota para ver as tentativas de login das últimas 24 horas.
+ * Retorna um array com todas as tentativas (sucesso e falha) do último dia.
+ */
+app.get('/login-attempts', (req, res) => {
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+  const log = loadLoginLog();
+  const recent = log.filter(entry => (now - entry.timestamp) <= oneDay);
+  res.json({ success: true, attempts: recent });
+});
+
+/**
  * Rota administrativa para limpar todas as mensagens do chat Eclipse.
  * Requer um token fixo (EclipseOwner123) - isso é frágil e deveria ser uma variável de ambiente.
  * Apenas para uso interno/demo.
